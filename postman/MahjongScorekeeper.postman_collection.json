@@ -1,0 +1,2588 @@
+{
+  "info": {
+    "_postman_id": "7ed8f0ca-05fe-4fdc-9aa3-60f3d2701fb7",
+    "name": "Mahjong Scorekeeper API",
+    "description": "Riichi Mahjong Scorekeeper API - Test Collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "36492387"
+  },
+  "item": [
+    {
+      "name": "Reference",
+      "item": [
+        {
+          "name": "Get All Yaku",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/yaku",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "yaku"
+              ]
+            },
+            "description": "Get all yaku definitions with han values and descriptions"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Game Management",
+      "item": [
+        {
+          "name": "Create Game",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.collectionVariables.set('gameId', jsonData.id);",
+                  "pm.collectionVariables.set('player1Id', jsonData.players[0].id);",
+                  "pm.collectionVariables.set('player2Id', jsonData.players[1].id);",
+                  "pm.collectionVariables.set('player3Id', jsonData.players[2].id);",
+                  "pm.collectionVariables.set('player4Id', jsonData.players[3].id);",
+                  "",
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Game has 4 players', function () {",
+                  "    pm.expect(jsonData.players.length).to.eql(4);",
+                  "});",
+                  "",
+                  "pm.test('All players have 25000 starting score', function () {",
+                  "    jsonData.players.forEach(function(player) {",
+                  "        pm.expect(player.score).to.eql(25000);",
+                  "    });",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"playerNames\": [\"Alice\", \"Bob\", \"Charlie\", \"Dave\"],\n    \"startingScore\": 25000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game"
+              ]
+            },
+            "description": "Create a new 4-player game"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Games",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is an array', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/game",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game"
+              ]
+            },
+            "description": "Get all games with player scores"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Game by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Game ID matches', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.id).to.eql(pm.collectionVariables.get('gameId'));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "{{gameId}}"
+              ]
+            },
+            "description": "Get full game state by GUID"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Game History",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Has rounds array', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.rounds).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/history",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "{{gameId}}",
+                "history"
+              ]
+            },
+            "description": "Get round-by-round history"
+          },
+          "response": []
+        },
+        {
+          "name": "End Game",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Game status is Completed', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.status).to.eql('Completed');",
+                  "});",
+                  "",
+                  "pm.test('Winner is determined', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.ranking).to.be.an('array');",
+                  "    pm.expect(jsonData.ranking.length).to.eql(4);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/end",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "{{gameId}}",
+                "end"
+              ]
+            },
+            "description": "End game and determine winner"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Game",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 204', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "{{gameId}}"
+              ]
+            },
+            "description": "Delete a game"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Player Name Lookups",
+      "item": [
+        {
+          "name": "Find Games by Player Name",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is an array', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/game/player/Alice",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "player",
+                "Alice"
+              ]
+            },
+            "description": "Find all games containing a specific player"
+          },
+          "response": []
+        },
+        {
+          "name": "Find Game by All 4 Players",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 404', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/game/search?players=Alice,Bob,Charlie,Dave",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "players",
+                  "value": "Alice,Bob,Charlie,Dave"
+                }
+              ]
+            },
+            "description": "Find game with exact 4 player names"
+          },
+          "response": []
+        },
+        {
+          "name": "Find Active Game by Player",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 404', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/game/active/Alice",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "active",
+                "Alice"
+              ]
+            },
+            "description": "Find in-progress game for a player"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Record Hands",
+      "item": [
+        {
+          "name": "Record Ron (3 Han 30 Fu)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Points won is 3900', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.results[0].pointsWon).to.eql(3900);",
+                  "});",
+                  "",
+                  "pm.test('Is not tsumo', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.results[0].isTsumo).to.eql(false);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"winners\": [{\"winnerId\": \"{{player2Id}}\", \"han\": 3, \"fu\": 30, \"yaku\": [\"Riichi\", \"Tanyao\", \"Pinfu\"]}],\n    \"loserId\": \"{{player3Id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/round",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "{{gameId}}",
+                "round"
+              ]
+            },
+            "description": "Record a Ron win (3 han 30 fu = 3900 points)"
+          },
+          "response": []
+        },
+        {
+          "name": "Record Tsumo (2 Han 30 Fu)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Is tsumo', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.results[0].isTsumo).to.eql(true);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"winners\": [{\"winnerId\": \"{{player1Id}}\", \"han\": 2, \"fu\": 30, \"yaku\": [\"Tanyao\", \"Tsumo\"]}]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/round",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "{{gameId}}",
+                "round"
+              ]
+            },
+            "description": "Record a Tsumo win (no loserId = all others pay)"
+          },
+          "response": []
+        },
+        {
+          "name": "Record Mangan Ron (5 Han)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Points won is 8000 (mangan)', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.results[0].pointsWon).to.eql(8000);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"winners\": [{\"winnerId\": \"{{player4Id}}\", \"han\": 5, \"fu\": 30, \"yaku\": [\"Honitsu\", \"Yakuhai\", \"Toitoi\"]}],\n    \"loserId\": \"{{player2Id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/round",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "{{gameId}}",
+                "round"
+              ]
+            },
+            "description": "Record a Mangan Ron (5+ han = 8000 points)"
+          },
+          "response": []
+        },
+        {
+          "name": "Record Yakuman (13 Han)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Points won is 32000 (yakuman)', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.results[0].pointsWon).to.eql(32000);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"winners\": [{\"winnerId\": \"{{player1Id}}\", \"han\": 13, \"fu\": 30, \"yaku\": [\"Suuankou\"]}],\n    \"loserId\": \"{{player2Id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/round",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "{{gameId}}",
+                "round"
+              ]
+            },
+            "description": "Record a Yakuman Ron (13 han = 32000 points)"
+          },
+          "response": []
+        },
+        {
+          "name": "Record Hand with Dora",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"winners\": [{\"winnerId\": \"{{player3Id}}\", \"han\": 4, \"fu\": 30, \"yaku\": [\"Riichi\", \"Tanyao\", \"Dora\", \"Dora\"]}],\n    \"loserId\": \"{{player4Id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/round",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "{{gameId}}",
+                "round"
+              ]
+            },
+            "description": "Record a hand with Dora bonus (Riichi + Tanyao + 2 Dora = 4 han)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Riichi",
+      "item": [
+        {
+          "name": "Declare Riichi",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Kyoutaku incremented', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.kyoutaku).to.be.above(0);",
+                  "});",
+                  "",
+                  "pm.test('Player has 1 riichi stick', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    var player = jsonData.players.find(p => p.id === pm.collectionVariables.get('player1Id'));",
+                  "    pm.expect(player.riichiSticks).to.eql(1);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"playerId\": \"{{player1Id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/riichi",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "{{gameId}}",
+                "riichi"
+              ]
+            },
+            "description": "Declare riichi for a player. Adds riichi marker and increments kyoutaku by 1. Player does not lose 1000 yet."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Draws",
+      "item": [
+        {
+          "name": "Record Exhaustive Draw (2 Tenpai)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Draw type is Exhaustive', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.drawType).to.eql('Exhaustive');",
+                  "});",
+                  "",
+                  "pm.test('Honba incremented', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.honba).to.be.above(0);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"drawType\": \"Exhaustive\",\n    \"tenpaiPlayerIds\": [\"{{player1Id}}\", \"{{player2Id}}\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/draw",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "{{gameId}}",
+                "draw"
+              ]
+            },
+            "description": "Exhaustive draw with 2 tenpai players. Each tenpai receives 1500, each noten pays 1500. Honba increments."
+          },
+          "response": []
+        },
+        {
+          "name": "Record Exhaustive Draw (All Noten)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"drawType\": \"Exhaustive\",\n    \"tenpaiPlayerIds\": []\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/draw",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "{{gameId}}",
+                "draw"
+              ]
+            },
+            "description": "Exhaustive draw with no tenpai players. No point exchange. Dealer rotates (noten). Honba increments."
+          },
+          "response": []
+        },
+        {
+          "name": "Record Abortive Draw (Four Kan)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Draw type is FourKan', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.drawType).to.eql('FourKan');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"drawType\": \"FourKan\",\n    \"tenpaiPlayerIds\": []\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/draw",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "{{gameId}}",
+                "draw"
+              ]
+            },
+            "description": "Abortive draw (4 kans by different players). No point exchange. Honba increments."
+          },
+          "response": []
+        },
+        {
+          "name": "Record Exhaustive Draw (Dealer Tenpai - Renchan)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Honba incremented (renchan)', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.honba).to.be.above(0);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"drawType\": \"Exhaustive\",\n    \"tenpaiPlayerIds\": [\"{{player1Id}}\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/draw",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "{{gameId}}",
+                "draw"
+              ]
+            },
+            "description": "Exhaustive draw where dealer (player1) is tenpai. Dealer stays (renchan). Tenpai gets 3000, each noten pays 1000."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Full Game Flow 1 (Default Rules)",
+      "item": [
+        {
+          "name": "1. Create New Game",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.collectionVariables.set('gameId', jsonData.id);",
+                  "pm.collectionVariables.set('player1Id', jsonData.players[0].id);",
+                  "pm.collectionVariables.set('player2Id', jsonData.players[1].id);",
+                  "pm.collectionVariables.set('player3Id', jsonData.players[2].id);",
+                  "pm.collectionVariables.set('player4Id', jsonData.players[3].id);",
+                  "",
+                  "pm.test('Game created', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"playerNames\": [\"East\", \"South\", \"West\", \"North\"],\n    \"startingScore\": 25000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2. Play Hand 1 (Player2 Ron Player3)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Hand recorded', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"winners\": [{\"winnerId\": \"{{player2Id}}\", \"han\": 3, \"fu\": 30, \"yaku\": [\"Riichi\", \"Tanyao\", \"Pinfu\"]}],\n    \"loserId\": \"{{player3Id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/round",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "{{gameId}}",
+                "round"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3. Player3 Declares Riichi",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Riichi declared', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Kyoutaku is 1', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.kyoutaku).to.eql(1);",
+                  "});",
+                  "",
+                  "console.log('Player3 declared riichi. Kyoutaku = 1. Player3 has not lost 1000 yet.');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"playerId\": \"{{player3Id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/riichi",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "{{gameId}}",
+                "riichi"
+              ]
+            },
+            "description": "Player3 declares riichi. Kyoutaku increments to 1. Player3 does not lose 1000 yet — that happens when someone wins."
+          },
+          "response": []
+        },
+        {
+          "name": "4. Exhaustive Draw (Player2 Tenpai)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Draw recorded', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Honba is 1', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.honba).to.eql(1);",
+                  "});",
+                  "",
+                  "console.log('Draw recorded. Dealer (player2) tenpai = renchan. Honba now 1.');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"drawType\": \"Exhaustive\",\n    \"tenpaiPlayerIds\": [\"{{player2Id}}\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/draw",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "{{gameId}}",
+                "draw"
+              ]
+            },
+            "description": "Exhaustive draw. After step 2, dealer rotated to player2 (non-dealer Ron). Player2 (current dealer) is tenpai so renchan applies — dealer stays, honba goes to 1. Dealer gets 3000, each noten pays 1000."
+          },
+          "response": []
+        },
+        {
+          "name": "5. Play Hand 2 (Player2 Ron Player3 with Honba + Kyoutaku)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Hand recorded', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Honba bonus is 300', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.results[0].honbaBonus).to.eql(300);",
+                  "});",
+                  "",
+                  "console.log('Ron with 1 honba = +300 bonus to winner');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"winners\": [{\"winnerId\": \"{{player2Id}}\", \"han\": 2, \"fu\": 30, \"yaku\": [\"Tanyao\", \"Pinfu\"]}],\n    \"loserId\": \"{{player3Id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/round",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "{{gameId}}",
+                "round"
+              ]
+            },
+            "description": "Non-dealer Ron with 1 honba. Base 2000 + 300 honba bonus. Dealer rotates, honba resets to 0."
+          },
+          "response": []
+        },
+        {
+          "name": "6. Play Hand 3 (Player1 Tsumo)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Hand recorded', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"winners\": [{\"winnerId\": \"{{player1Id}}\", \"han\": 2, \"fu\": 30, \"yaku\": [\"Tanyao\", \"Tsumo\"]}]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/round",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "{{gameId}}",
+                "round"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "7. Check Current Scores",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Game retrieved', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "console.log('Current Scores:');",
+                  "jsonData.players.forEach(function(p) {",
+                  "    console.log(p.name + ': ' + p.score);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "{{gameId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "8. End Game",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Game ended', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "console.log('1st: ' + jsonData.ranking[0].player.name + ' (' + jsonData.ranking[0].player.score + '), 4th: ' + jsonData.ranking[3].player.name + ' (' + jsonData.ranking[3].player.score + ')');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/end",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "{{gameId}}",
+                "end"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "9. View Final History",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('History retrieved', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/history",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "{{gameId}}",
+                "history"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Full Game Flow 2 (M.League Rules)",
+      "item": [
+        {
+          "name": "1. Create Game (M.League Rules)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.collectionVariables.set('gameId', jsonData.id);",
+                  "pm.collectionVariables.set('player1Id', jsonData.players[0].id);",
+                  "pm.collectionVariables.set('player2Id', jsonData.players[1].id);",
+                  "pm.collectionVariables.set('player3Id', jsonData.players[2].id);",
+                  "pm.collectionVariables.set('player4Id', jsonData.players[3].id);",
+                  "",
+                  "pm.test('Game created', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Kiriage enabled', function () {",
+                  "    pm.expect(jsonData.rules.kiriage).to.eql(true);",
+                  "});",
+                  "",
+                  "pm.test('Bankruptcy disabled', function () {",
+                  "    pm.expect(jsonData.rules.bankruptcy).to.eql(false);",
+                  "});",
+                  "",
+                  "pm.test('Abortive draws disabled', function () {",
+                  "    pm.expect(jsonData.rules.abortiveDraws).to.eql(false);",
+                  "});",
+                  "",
+                  "pm.test('Kazoeyakuman disabled', function () {",
+                  "    pm.expect(jsonData.rules.kazoeyakuman).to.eql(false);",
+                  "});",
+                  "",
+                  "pm.test('Atamahane enabled', function () {",
+                  "    pm.expect(jsonData.rules.atamahane).to.eql(true);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"playerNames\": [\"Endo\", \"Sakado\", \"Takemiya\", \"Mizoguchi\"],\n    \"startingScore\": 25000,\n    \"kiriage\": true,\n    \"atamahane\": true,\n    \"kazoeyakuman\": false,\n    \"doubleYakuman\": false,\n    \"bankruptcy\": false,\n    \"abortiveDraws\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game"
+              ]
+            },
+            "description": "Create game with M.League-style rules: kiriage on, atamahane on, no kazoeyakuman, no bankruptcy, no abortive draws."
+          },
+          "response": []
+        },
+        {
+          "name": "2. Player2 Ron Player3 - Kiriage Test (4 Han 30 Fu)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Hand recorded', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Points is 8000 (mangan via kiriage, not 7700)', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.results[0].pointsWon).to.eql(8000);",
+                  "});",
+                  "",
+                  "console.log('4han30fu with kiriage = 8000 (mangan), not 7700');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"winners\": [{\"winnerId\": \"{{player2Id}}\", \"han\": 4, \"fu\": 30, \"yaku\": [\"Riichi\", \"Tanyao\", \"Pinfu\", \"Dora\"]}],\n    \"loserId\": \"{{player3Id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/round",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "{{gameId}}",
+                "round"
+              ]
+            },
+            "description": "4 han 30 fu with kiriage enabled should score as mangan (8000) instead of 7700."
+          },
+          "response": []
+        },
+        {
+          "name": "3. Player1 Ron Player4 - Kiriage Test (3 Han 60 Fu)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Hand recorded', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Points is 8000 (mangan via kiriage, not 7700)', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.results[0].pointsWon).to.eql(8000);",
+                  "});",
+                  "",
+                  "console.log('3han60fu with kiriage = 8000 (mangan), not 7700');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"winners\": [{\"winnerId\": \"{{player1Id}}\", \"han\": 3, \"fu\": 60, \"yaku\": [\"Toitoi\", \"Yakuhai\"]}],\n    \"loserId\": \"{{player4Id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/round",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "{{gameId}}",
+                "round"
+              ]
+            },
+            "description": "3 han 60 fu with kiriage enabled should score as mangan (8000) instead of 7700."
+          },
+          "response": []
+        },
+        {
+          "name": "4. Abortive Draw Blocked",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Returns 400 (abortive draws disabled)', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Error message mentions disabled', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.error).to.include('disabled');",
+                  "});",
+                  "",
+                  "console.log('FourKan draw correctly rejected — abortive draws disabled');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"drawType\": \"FourKan\",\n    \"tenpaiPlayerIds\": []\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/draw",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "{{gameId}}",
+                "draw"
+              ]
+            },
+            "description": "Abortive draws are disabled in M.League rules. FourKan should return 400 error."
+          },
+          "response": []
+        },
+        {
+          "name": "5. Exhaustive Draw (Player1 Tenpai)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Draw recorded', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "console.log('Exhaustive draw still works even with abortive draws disabled');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"drawType\": \"Exhaustive\",\n    \"tenpaiPlayerIds\": [\"{{player1Id}}\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/draw",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "{{gameId}}",
+                "draw"
+              ]
+            },
+            "description": "Exhaustive draws are always allowed regardless of abortiveDraws setting."
+          },
+          "response": []
+        },
+        {
+          "name": "6. Player2 Ron Player4 - Kazoeyakuman Capped to Sanbaiman",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Hand recorded', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Points is 24000 (sanbaiman, not yakuman)', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.results[0].pointsWon).to.eql(24000);",
+                  "});",
+                  "",
+                  "console.log('13 han without yakuman yaku = sanbaiman (24000) when kazoeyakuman disabled');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"winners\": [{\"winnerId\": \"{{player2Id}}\", \"han\": 13, \"fu\": 30, \"yaku\": [\"Chinitsu\", \"Riichi\", \"Ippatsu\", \"Tanyao\", \"Pinfu\", \"Iipeikou\", \"Dora\"]}],\n    \"loserId\": \"{{player4Id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/round",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "{{gameId}}",
+                "round"
+              ]
+            },
+            "description": "13 han from regular yaku (no yakuman yaku). With kazoeyakuman disabled, this caps at sanbaiman (24000) instead of yakuman (32000)."
+          },
+          "response": []
+        },
+        {
+          "name": "7. Bankruptcy Ignored (Big Loss)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Hand recorded', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Game still in progress', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.gameStatus).to.eql('InProgress');",
+                  "});",
+                  "",
+                  "console.log('Player went negative but game continues — bankruptcy disabled');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"winners\": [{\"winnerId\": \"{{player1Id}}\", \"han\": 13, \"fu\": 30, \"yaku\": [\"Suuankou\"]}],\n    \"loserId\": \"{{player4Id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/round",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "{{gameId}}",
+                "round"
+              ]
+            },
+            "description": "Yakuman ron (32000) against player4 who has already lost points. Even if player4 goes negative, game continues because bankruptcy is disabled."
+          },
+          "response": []
+        },
+        {
+          "name": "8. Check Scores (Negative Allowed)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Game retrieved', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Game still in progress', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.status).to.eql('InProgress');",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "console.log('Scores (negative allowed):');",
+                  "jsonData.players.forEach(function(p) {",
+                  "    console.log(p.name + ': ' + p.score);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "{{gameId}}"
+              ]
+            },
+            "description": "Check scores — player4 should be negative but game is still InProgress."
+          },
+          "response": []
+        },
+        {
+          "name": "9. End Game Manually",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Game ended', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "console.log('1st: ' + jsonData.ranking[0].player.name + ' (' + jsonData.ranking[0].player.score + '), 4th: ' + jsonData.ranking[3].player.name + ' (' + jsonData.ranking[3].player.score + ')');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/end",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "{{gameId}}",
+                "end"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Full Game Flow 3 (Composite & Double Yakuman)",
+      "item": [
+        {
+          "name": "1. Create Game (Composite + Double Yakuman)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.collectionVariables.set('gameId', jsonData.id);",
+                  "pm.collectionVariables.set('player1Id', jsonData.players[0].id);",
+                  "pm.collectionVariables.set('player2Id', jsonData.players[1].id);",
+                  "pm.collectionVariables.set('player3Id', jsonData.players[2].id);",
+                  "pm.collectionVariables.set('player4Id', jsonData.players[3].id);",
+                  "",
+                  "pm.test('Game created', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Composite yakuman enabled', function () {",
+                  "    pm.expect(jsonData.rules.compositeYakuman).to.eql(true);",
+                  "});",
+                  "",
+                  "pm.test('Double yakuman enabled', function () {",
+                  "    pm.expect(jsonData.rules.doubleYakuman).to.eql(true);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"playerNames\": [\"Haku\", \"Hatsu\", \"Chun\", \"Shaa\"],\n    \"startingScore\": 25000,\n    \"compositeYakuman\": true,\n    \"doubleYakuman\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game"
+              ]
+            },
+            "description": "Create game with composite and double yakuman both enabled."
+          },
+          "response": []
+        },
+        {
+          "name": "2. Player2 Ron Player3 - Composite Yakuman (Tsuiisou + Suuankou = 2x)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Hand recorded', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Points is 64000 (double yakuman: 32000 x 2)', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.results[0].pointsWon).to.eql(64000);",
+                  "});",
+                  "",
+                  "console.log('Composite yakuman: Tsuiisou + Suuankou = 2x yakuman = 64000');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"winners\": [{\"winnerId\": \"{{player2Id}}\", \"han\": 13, \"fu\": 20, \"yaku\": [\"Tsuiisou\", \"Suuankou\"]}],\n    \"loserId\": \"{{player3Id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/round",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "{{gameId}}",
+                "round"
+              ]
+            },
+            "description": "Two yakuman yaku (Tsuiisou + Suuankou) with composite enabled = 2x yakuman = 64000 for non-dealer ron."
+          },
+          "response": []
+        },
+        {
+          "name": "3. Player1 Ron Player4 - Double Yakuman (SuuankouTanki = 2x)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Hand recorded', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Points is 64000 (non-dealer double yakuman: 32000 x 2)', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.results[0].pointsWon).to.eql(64000);",
+                  "});",
+                  "",
+                  "console.log('Double yakuman variant: SuuankouTanki = 2x yakuman, non-dealer = 64000');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"winners\": [{\"winnerId\": \"{{player1Id}}\", \"han\": 13, \"fu\": 20, \"yaku\": [\"SuuankouTanki\"]}],\n    \"loserId\": \"{{player4Id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/round",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "{{gameId}}",
+                "round"
+              ]
+            },
+            "description": "After step 2, dealer rotated to player2. Player1 is non-dealer. SuuankouTanki with doubleYakuman = 2x = 64000 non-dealer ron."
+          },
+          "response": []
+        },
+        {
+          "name": "4. Player3 Ron Player4 - Composite + Double (Tsuiisou + SuuankouTanki = 3x)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Hand recorded', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Points is 96000 (triple yakuman: 32000 x 3)', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.results[0].pointsWon).to.eql(96000);",
+                  "});",
+                  "",
+                  "console.log('Composite + Double: Tsuiisou(1x) + SuuankouTanki(2x) = 3x yakuman = 96000');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"winners\": [{\"winnerId\": \"{{player3Id}}\", \"han\": 13, \"fu\": 20, \"yaku\": [\"Tsuiisou\", \"SuuankouTanki\"]}],\n    \"loserId\": \"{{player4Id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/round",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "{{gameId}}",
+                "round"
+              ]
+            },
+            "description": "Composite + double: Tsuiisou (1x) + SuuankouTanki (2x with double yakuman) = 3x yakuman = 96000 non-dealer ron."
+          },
+          "response": []
+        },
+        {
+          "name": "5. Player2 Ron Player4 - Single Yakuman baseline (Kokushimusou = 1x)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Hand recorded', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Points is 32000 (single yakuman)', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.results[0].pointsWon).to.eql(32000);",
+                  "});",
+                  "",
+                  "console.log('Single yakuman baseline: Kokushimusou = 1x = 32000');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"winners\": [{\"winnerId\": \"{{player2Id}}\", \"han\": 13, \"fu\": 20, \"yaku\": [\"Kokushimusou\"]}],\n    \"loserId\": \"{{player4Id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/round",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "{{gameId}}",
+                "round"
+              ]
+            },
+            "description": "Single yakuman (not a double variant) = 1x = 32000 non-dealer ron. Baseline comparison."
+          },
+          "response": []
+        },
+        {
+          "name": "6. End Game",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Game ended', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "console.log('1st: ' + jsonData.ranking[0].player.name + ' (' + jsonData.ranking[0].player.score + '), 4th: ' + jsonData.ranking[3].player.name + ' (' + jsonData.ranking[3].player.score + ')');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/end",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "{{gameId}}",
+                "end"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Full Game Flow 4 (Multi-Ron with Kyoutaku & Honba)",
+      "item": [
+        {
+          "name": "1. Create Game (Default Rules)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.collectionVariables.set('gameId', jsonData.id);",
+                  "pm.collectionVariables.set('player1Id', jsonData.players[0].id);",
+                  "pm.collectionVariables.set('player2Id', jsonData.players[1].id);",
+                  "pm.collectionVariables.set('player3Id', jsonData.players[2].id);",
+                  "pm.collectionVariables.set('player4Id', jsonData.players[3].id);",
+                  "",
+                  "pm.test('Game created', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('All players start at 25000', function () {",
+                  "    jsonData.players.forEach(function(p) {",
+                  "        pm.expect(p.score).to.eql(25000);",
+                  "    });",
+                  "});",
+                  "",
+                  "console.log('Players: ' + jsonData.players.map(p => p.name + '(' + p.seatWind + ')').join(', '));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"playerNames\": [\"Dealer\", \"South\", \"West\", \"North\"],\n    \"startingScore\": 25000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game"
+              ]
+            },
+            "description": "Create a 4-player game. Player1=Dealer(East), Player2=South, Player3=West, Player4=North."
+          },
+          "response": []
+        },
+        {
+          "name": "2. Dealer Wins Ron (Set Honba to 1)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Round recorded', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.test('Dealer won 2900 (dealer ron 2han30fu)', function () {",
+                  "    pm.expect(jsonData.results[0].pointsWon).to.eql(2900);",
+                  "});",
+                  "",
+                  "console.log('Dealer ron from South: 2900. Renchan → honba becomes 1.');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"winners\": [{\"winnerId\": \"{{player1Id}}\", \"han\": 2, \"fu\": 30, \"yaku\": [\"Yakuhai\", \"Tanyao\"]}],\n    \"loserId\": \"{{player2Id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/round",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "{{gameId}}",
+                "round"
+              ]
+            },
+            "description": "Dealer wins by ron from South. Dealer stays (renchan), honba increments to 1."
+          },
+          "response": []
+        },
+        {
+          "name": "3. Verify Honba is 1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Game retrieved', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.test('Honba is 1', function () {",
+                  "    pm.expect(jsonData.honba).to.eql(1);",
+                  "});",
+                  "",
+                  "pm.test('Dealer is still player1', function () {",
+                  "    pm.expect(jsonData.dealerIndex).to.eql(0);",
+                  "});",
+                  "",
+                  "console.log('Honba: ' + jsonData.honba + ', Dealer index: ' + jsonData.dealerIndex);",
+                  "console.log('Scores: ' + jsonData.players.map(p => p.name + '=' + p.score).join(', '));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "{{gameId}}"
+              ]
+            },
+            "description": "Verify honba is 1 after dealer renchan."
+          },
+          "response": []
+        },
+        {
+          "name": "4. South and North Declare Riichi",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Riichi declared', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.test('Kyoutaku is 1', function () {",
+                  "    pm.expect(jsonData.kyoutaku).to.eql(1);",
+                  "});",
+                  "",
+                  "console.log('South declared riichi. Kyoutaku = 1.');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"playerId\": \"{{player2Id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/riichi",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "{{gameId}}",
+                "riichi"
+              ]
+            },
+            "description": "South declares riichi. Kyoutaku becomes 1."
+          },
+          "response": []
+        },
+        {
+          "name": "5. North Declares Riichi",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Riichi declared', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.test('Kyoutaku is 2', function () {",
+                  "    pm.expect(jsonData.kyoutaku).to.eql(2);",
+                  "});",
+                  "",
+                  "console.log('North declared riichi. Kyoutaku = 2.');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"playerId\": \"{{player4Id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/riichi",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "{{gameId}}",
+                "riichi"
+              ]
+            },
+            "description": "North also declares riichi. Kyoutaku becomes 2."
+          },
+          "response": []
+        },
+        {
+          "name": "6. Double Ron - South & North win from West (with Honba + Kyoutaku)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Round recorded', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Two results returned', function () {",
+                  "    pm.expect(jsonData.results.length).to.eql(2);",
+                  "});",
+                  "",
+                  "// Loser is West (index 2). Turn order from West: North(3)→Dealer(0)→South(1).",
+                  "// So North (player4) is atamahane — sorted first by server.",
+                  "",
+                  "pm.test('Atamahane winner is North (closest to loser in turn order)', function () {",
+                  "    pm.expect(jsonData.results[0].winnerId).to.eql(pm.collectionVariables.get('player4Id'));",
+                  "});",
+                  "",
+                  "pm.test('Second winner is South', function () {",
+                  "    pm.expect(jsonData.results[1].winnerId).to.eql(pm.collectionVariables.get('player2Id'));",
+                  "});",
+                  "",
+                  "pm.test('Atamahane winner gets honba bonus (300)', function () {",
+                  "    pm.expect(jsonData.results[0].honbaBonus).to.eql(300);",
+                  "});",
+                  "",
+                  "pm.test('Atamahane winner receives kyoutaku', function () {",
+                  "    pm.expect(jsonData.results[0].receivedKyoutaku).to.eql(true);",
+                  "});",
+                  "",
+                  "pm.test('Second winner gets no honba bonus', function () {",
+                  "    pm.expect(jsonData.results[1].honbaBonus).to.eql(0);",
+                  "});",
+                  "",
+                  "pm.test('Second winner does not receive kyoutaku', function () {",
+                  "    pm.expect(jsonData.results[1].receivedKyoutaku).to.eql(false);",
+                  "});",
+                  "",
+                  "// North: 1han30fu non-dealer ron = 1000",
+                  "pm.test('North ron points = 1000', function () {",
+                  "    pm.expect(jsonData.results[0].pointsWon).to.eql(1000);",
+                  "});",
+                  "",
+                  "// South: 3han30fu non-dealer ron = 3900",
+                  "pm.test('South ron points = 3900', function () {",
+                  "    pm.expect(jsonData.results[1].pointsWon).to.eql(3900);",
+                  "});",
+                  "",
+                  "console.log('Double ron from West. Atamahane order: North first, South second.');",
+                  "console.log('North: ' + jsonData.results[0].pointsWon + ' + ' + jsonData.results[0].honbaBonus + ' honba, kyoutaku=' + jsonData.results[0].receivedKyoutaku);",
+                  "console.log('South: ' + jsonData.results[1].pointsWon + ' + ' + jsonData.results[1].honbaBonus + ' honba, kyoutaku=' + jsonData.results[1].receivedKyoutaku);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"winners\": [\n        {\"winnerId\": \"{{player2Id}}\", \"han\": 3, \"fu\": 30, \"yaku\": [\"Riichi\", \"Tanyao\", \"Pinfu\"]},\n        {\"winnerId\": \"{{player4Id}}\", \"han\": 1, \"fu\": 30, \"yaku\": [\"Riichi\"]}\n    ],\n    \"loserId\": \"{{player3Id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/round",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "{{gameId}}",
+                "round"
+              ]
+            },
+            "description": "Double ron from West (player3). South and North both win. Server auto-sorts by atamahane: North is closer to West in turn order (West→North→Dealer→South), so North is the atamahane winner. North gets honba bonus (1×300=300) and all kyoutaku (2×1000=2000). South gets just her ron payment. Honba was 1, kyoutaku was 2."
+          },
+          "response": []
+        },
+        {
+          "name": "7. Verify Scores After Double Ron",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Game retrieved', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Kyoutaku is 0 (all collected)', function () {",
+                  "    pm.expect(jsonData.kyoutaku).to.eql(0);",
+                  "});",
+                  "",
+                  "pm.test('Honba reset to 0 (non-dealer win)', function () {",
+                  "    pm.expect(jsonData.honba).to.eql(0);",
+                  "});",
+                  "",
+                  "// Starting: Dealer=25000+2900=27900, South=25000-2900=22100, West=25000, North=25000",
+                  "// Riichi sticks: South(1), North(1) → each loses 1000 at settlement",
+                  "// Double ron from West (honba=1, kyoutaku=2):",
+                  "//   North (atamahane): 1000 ron + 300 honba from West, + 2000 kyoutaku, - 1000 riichi = net +2300",
+                  "//   South: 3900 ron from West, - 1000 riichi = net +2900",
+                  "//   West pays: 1000+300 to North + 3900 to South = -5200",
+                  "",
+                  "var dealer = jsonData.players.find(p => p.id === pm.collectionVariables.get('player1Id'));",
+                  "var south = jsonData.players.find(p => p.id === pm.collectionVariables.get('player2Id'));",
+                  "var west = jsonData.players.find(p => p.id === pm.collectionVariables.get('player3Id'));",
+                  "var north = jsonData.players.find(p => p.id === pm.collectionVariables.get('player4Id'));",
+                  "",
+                  "pm.test('Dealer score unchanged (27900)', function () {",
+                  "    pm.expect(dealer.score).to.eql(27900);",
+                  "});",
+                  "",
+                  "// South: 22100 + 3900 (ron) - 1000 (riichi stick) = 25000",
+                  "pm.test('South score = 25000 (22100 + 3900 - 1000 riichi)', function () {",
+                  "    pm.expect(south.score).to.eql(25000);",
+                  "});",
+                  "",
+                  "// West: 25000 - 1300 (honba ron to North) - 3900 (ron to South) = 19800",
+                  "pm.test('West score = 19800 (25000 - 1300 - 3900)', function () {",
+                  "    pm.expect(west.score).to.eql(19800);",
+                  "});",
+                  "",
+                  "// North: 25000 + 1000 (ron) + 300 (honba) + 2000 (kyoutaku) - 1000 (riichi) = 27300",
+                  "pm.test('North score = 27300 (25000 + 1000 + 300 + 2000 - 1000 riichi)', function () {",
+                  "    pm.expect(north.score).to.eql(27300);",
+                  "});",
+                  "",
+                  "console.log('Scores after double ron:');",
+                  "jsonData.players.forEach(function(p) {",
+                  "    console.log('  ' + p.name + ': ' + p.score);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "{{gameId}}"
+              ]
+            },
+            "description": "Verify all scores, kyoutaku cleared, honba reset after the double ron."
+          },
+          "response": []
+        },
+        {
+          "name": "8. View History",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('History retrieved', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "// The double ron round should have 2 hand results",
+                  "var lastRound = jsonData.rounds[jsonData.rounds.length - 1];",
+                  "pm.test('Last round has 2 hand results (double ron)', function () {",
+                  "    pm.expect(lastRound.handResults.length).to.eql(2);",
+                  "});",
+                  "",
+                  "console.log('Total rounds played: ' + jsonData.rounds.length);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/history",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "{{gameId}}",
+                "history"
+              ]
+            },
+            "description": "Verify the double ron shows as 2 hand results in the round history."
+          },
+          "response": []
+        },
+        {
+          "name": "9. End Game",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Game ended', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.test('Status is Completed', function () {",
+                  "    pm.expect(jsonData.status).to.eql('Completed');",
+                  "});",
+                  "",
+                  "console.log('1st: ' + jsonData.ranking[0].player.name + ' (' + jsonData.ranking[0].player.score + '), 4th: ' + jsonData.ranking[3].player.name + ' (' + jsonData.ranking[3].player.score + ')');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/end",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "game",
+                "{{gameId}}",
+                "end"
+              ]
+            },
+            "description": "End the game. Dealer or North should be the winner."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5053",
+      "type": "string"
+    },
+    {
+      "key": "gameId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "player1Id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "player2Id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "player3Id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "player4Id",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

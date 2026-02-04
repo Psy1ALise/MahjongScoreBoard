@@ -1,0 +1,862 @@
+{
+  "info": {
+    "_postman_id": "pao-flow-tests-001",
+    "name": "Pao (Sekinin Barai) Flow Tests",
+    "description": "Full game flow tests for Pao (responsibility payment) feature. Run each folder as a separate flow using Postman Collection Runner.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Flow 1: Pao Tsumo - Liable Pays Full",
+      "description": "Non-dealer tsumo yakuman with pao. Liable player pays full ron equivalent, others pay nothing.",
+      "item": [
+        {
+          "name": "1. Create Game (Pao enabled)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.collectionVariables.set('gameId', jsonData.id);",
+                  "pm.collectionVariables.set('player1Id', jsonData.players[0].id);",
+                  "pm.collectionVariables.set('player2Id', jsonData.players[1].id);",
+                  "pm.collectionVariables.set('player3Id', jsonData.players[2].id);",
+                  "pm.collectionVariables.set('player4Id', jsonData.players[3].id);",
+                  "",
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Pao rule is enabled', function () {",
+                  "    pm.expect(jsonData.rules.pao).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('All players start at 100000', function () {",
+                  "    jsonData.players.forEach(function(p) {",
+                  "        pm.expect(p.score).to.eql(100000);",
+                  "    });",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"playerNames\": [\"Dealer\", \"Winner\", \"Liable\", \"Bystander\"],\n    \"startingScore\": 100000,\n    \"targetScore\": 100000,\n    \"pao\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "game"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2. Record Tsumo Yakuman with Pao",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Winner is player 2 (Winner)', function () {",
+                  "    pm.expect(jsonData.results[0].winnerId).to.eql(pm.collectionVariables.get('player2Id'));",
+                  "});",
+                  "",
+                  "pm.test('Is tsumo', function () {",
+                  "    pm.expect(jsonData.results[0].isTsumo).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('PaoPlayerId is set', function () {",
+                  "    pm.expect(jsonData.results[0].paoPlayerId).to.eql(pm.collectionVariables.get('player3Id'));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"winners\": [\n        {\n            \"winnerId\": \"{{player2Id}}\",\n            \"han\": 13,\n            \"fu\": 0,\n            \"yaku\": [\"Daisangen\"],\n            \"paoPlayerId\": \"{{player3Id}}\"\n        }\n    ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/round",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "game", "{{gameId}}", "round"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3. Verify Scores (Liable paid full)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Non-dealer tsumo yakuman with pao:",
+                  "// Liable pays equivalent ron amount = 32000",
+                  "// Others pay nothing",
+                  "",
+                  "pm.test('Dealer unchanged at 100000', function () {",
+                  "    pm.expect(jsonData.players[0].score).to.eql(100000);",
+                  "});",
+                  "",
+                  "pm.test('Winner gained 32000 → 132000', function () {",
+                  "    pm.expect(jsonData.players[1].score).to.eql(132000);",
+                  "});",
+                  "",
+                  "pm.test('Liable lost 32000 → 68000', function () {",
+                  "    pm.expect(jsonData.players[2].score).to.eql(68000);",
+                  "});",
+                  "",
+                  "pm.test('Bystander unchanged at 100000', function () {",
+                  "    pm.expect(jsonData.players[3].score).to.eql(100000);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "game", "{{gameId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4. Delete Game",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "game", "{{gameId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Flow 2: Pao Ron - 50/50 Split (Liable ≠ Ronned)",
+      "description": "Non-dealer ron yakuman. Ronned player pays half, liable player pays half + honba.",
+      "item": [
+        {
+          "name": "1. Create Game (Pao enabled)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.collectionVariables.set('gameId', jsonData.id);",
+                  "pm.collectionVariables.set('player1Id', jsonData.players[0].id);",
+                  "pm.collectionVariables.set('player2Id', jsonData.players[1].id);",
+                  "pm.collectionVariables.set('player3Id', jsonData.players[2].id);",
+                  "pm.collectionVariables.set('player4Id', jsonData.players[3].id);",
+                  "",
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"playerNames\": [\"Dealer\", \"Winner\", \"Liable\", \"Ronned\"],\n    \"startingScore\": 100000,\n    \"targetScore\": 100000,\n    \"pao\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "game"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2. Dealer wins (set honba=1)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"winners\": [\n        {\n            \"winnerId\": \"{{player1Id}}\",\n            \"han\": 1,\n            \"fu\": 30,\n            \"yaku\": [\"Yakuhai\"]\n        }\n    ],\n    \"loserId\": \"{{player2Id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/round",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "game", "{{gameId}}", "round"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3. Verify honba=1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Honba is 1', function () {",
+                  "    pm.expect(jsonData.honba).to.eql(1);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "game", "{{gameId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4. Ron Yakuman with Pao (honba=1)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('PaoPlayerId is set', function () {",
+                  "    pm.expect(jsonData.results[0].paoPlayerId).to.eql(pm.collectionVariables.get('player3Id'));",
+                  "});",
+                  "",
+                  "pm.test('Is ron (not tsumo)', function () {",
+                  "    pm.expect(jsonData.results[0].isTsumo).to.be.false;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"winners\": [\n        {\n            \"winnerId\": \"{{player2Id}}\",\n            \"han\": 13,\n            \"fu\": 0,\n            \"yaku\": [\"Daisangen\"],\n            \"paoPlayerId\": \"{{player3Id}}\"\n        }\n    ],\n    \"loserId\": \"{{player4Id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/round",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "game", "{{gameId}}", "round"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "5. Verify Scores (50/50 split + honba to liable)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Non-dealer ron yakuman = 32000 base",
+                  "// Ronned (player4) pays half = 16000",
+                  "// Liable (player3) pays half + honba×300 = 16000 + 300 = 16300",
+                  "// Winner gets 16000 + 16300 = 32300",
+                  "// Dealer had 101500 from step 2 (won 1500 dealer ron 1h30f)",
+                  "// Player2 had 98500 (lost 1500 in step 2)",
+                  "",
+                  "pm.test('Dealer unchanged from step 2', function () {",
+                  "    pm.expect(jsonData.players[0].score).to.eql(101500);",
+                  "});",
+                  "",
+                  "pm.test('Winner gained 32300 → 130800', function () {",
+                  "    // 98500 + 32300 = 130800",
+                  "    pm.expect(jsonData.players[1].score).to.eql(130800);",
+                  "});",
+                  "",
+                  "pm.test('Liable lost 16300 → 83700', function () {",
+                  "    pm.expect(jsonData.players[2].score).to.eql(83700);",
+                  "});",
+                  "",
+                  "pm.test('Ronned lost 16000 → 84000', function () {",
+                  "    pm.expect(jsonData.players[3].score).to.eql(84000);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "game", "{{gameId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "6. Check History (paoPlayerId persisted)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Second round has paoPlayerId', function () {",
+                  "    var lastRound = jsonData.rounds[jsonData.rounds.length - 1];",
+                  "    var hand = lastRound.handResults[0];",
+                  "    pm.expect(hand.paoPlayerId).to.eql(pm.collectionVariables.get('player3Id'));",
+                  "});",
+                  "",
+                  "pm.test('First round has no paoPlayerId', function () {",
+                  "    var hand = jsonData.rounds[0].handResults[0];",
+                  "    pm.expect(hand.paoPlayerId).to.be.null;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/history",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "game", "{{gameId}}", "history"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "7. Delete Game",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "game", "{{gameId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Flow 3: Pao Ron - Liable IS Ronned (Normal Payment)",
+      "description": "When the liable player is the same as the ronned player, normal ron payment applies.",
+      "item": [
+        {
+          "name": "1. Create Game (Pao enabled)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.collectionVariables.set('gameId', jsonData.id);",
+                  "pm.collectionVariables.set('player1Id', jsonData.players[0].id);",
+                  "pm.collectionVariables.set('player2Id', jsonData.players[1].id);",
+                  "pm.collectionVariables.set('player3Id', jsonData.players[2].id);",
+                  "pm.collectionVariables.set('player4Id', jsonData.players[3].id);",
+                  "",
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"playerNames\": [\"Dealer\", \"Winner\", \"LiableAndRonned\", \"Bystander\"],\n    \"startingScore\": 100000,\n    \"targetScore\": 100000,\n    \"pao\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "game"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2. Ron Yakuman (Liable = Ronned)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('PaoPlayerId matches loserId', function () {",
+                  "    pm.expect(jsonData.results[0].paoPlayerId).to.be.null;",
+                  "    // paoPlayerId not stored when liable=ronned (normal ron)",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"winners\": [\n        {\n            \"winnerId\": \"{{player2Id}}\",\n            \"han\": 13,\n            \"fu\": 0,\n            \"yaku\": [\"Daisangen\"],\n            \"paoPlayerId\": \"{{player3Id}}\"\n        }\n    ],\n    \"loserId\": \"{{player3Id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/round",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "game", "{{gameId}}", "round"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3. Verify Scores (Normal ron)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Normal non-dealer ron yakuman = 32000",
+                  "",
+                  "pm.test('Dealer unchanged', function () {",
+                  "    pm.expect(jsonData.players[0].score).to.eql(100000);",
+                  "});",
+                  "",
+                  "pm.test('Winner gained 32000', function () {",
+                  "    pm.expect(jsonData.players[1].score).to.eql(132000);",
+                  "});",
+                  "",
+                  "pm.test('LiableAndRonned lost 32000', function () {",
+                  "    pm.expect(jsonData.players[2].score).to.eql(68000);",
+                  "});",
+                  "",
+                  "pm.test('Bystander unchanged', function () {",
+                  "    pm.expect(jsonData.players[3].score).to.eql(100000);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "game", "{{gameId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4. Delete Game",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "game", "{{gameId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Flow 4: Pao Disabled - PaoPlayerId Ignored",
+      "description": "When Pao rule is disabled, paoPlayerId in request is ignored and normal payment applies.",
+      "item": [
+        {
+          "name": "1. Create Game (Pao disabled)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.collectionVariables.set('gameId', jsonData.id);",
+                  "pm.collectionVariables.set('player1Id', jsonData.players[0].id);",
+                  "pm.collectionVariables.set('player2Id', jsonData.players[1].id);",
+                  "pm.collectionVariables.set('player3Id', jsonData.players[2].id);",
+                  "pm.collectionVariables.set('player4Id', jsonData.players[3].id);",
+                  "",
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Pao rule is disabled', function () {",
+                  "    pm.expect(jsonData.rules.pao).to.be.false;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"playerNames\": [\"Dealer\", \"Winner\", \"WouldBeLiable\", \"Bystander\"],\n    \"startingScore\": 100000,\n    \"targetScore\": 100000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "game"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2. Tsumo Yakuman with paoPlayerId (ignored)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('PaoPlayerId is null (ignored)', function () {",
+                  "    pm.expect(jsonData.results[0].paoPlayerId).to.be.null;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"winners\": [\n        {\n            \"winnerId\": \"{{player2Id}}\",\n            \"han\": 13,\n            \"fu\": 0,\n            \"yaku\": [\"Daisangen\"],\n            \"paoPlayerId\": \"{{player3Id}}\"\n        }\n    ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/round",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "game", "{{gameId}}", "round"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3. Verify Scores (Normal tsumo)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Normal non-dealer tsumo yakuman:",
+                  "// Dealer pays 16000, non-dealers pay 8000 each",
+                  "// Total: 16000 + 8000 + 8000 = 32000",
+                  "",
+                  "pm.test('Dealer lost 16000', function () {",
+                  "    pm.expect(jsonData.players[0].score).to.eql(84000);",
+                  "});",
+                  "",
+                  "pm.test('Winner gained 32000', function () {",
+                  "    pm.expect(jsonData.players[1].score).to.eql(132000);",
+                  "});",
+                  "",
+                  "pm.test('WouldBeLiable lost 8000 (normal tsumo)', function () {",
+                  "    pm.expect(jsonData.players[2].score).to.eql(92000);",
+                  "});",
+                  "",
+                  "pm.test('Bystander lost 8000', function () {",
+                  "    pm.expect(jsonData.players[3].score).to.eql(92000);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "game", "{{gameId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4. Delete Game",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "game", "{{gameId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Flow 5: Pao Tsumo Dealer Yakuman",
+      "description": "Dealer tsumo yakuman with pao. Liable pays full dealer ron equivalent.",
+      "item": [
+        {
+          "name": "1. Create Game (Pao enabled)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.collectionVariables.set('gameId', jsonData.id);",
+                  "pm.collectionVariables.set('player1Id', jsonData.players[0].id);",
+                  "pm.collectionVariables.set('player2Id', jsonData.players[1].id);",
+                  "pm.collectionVariables.set('player3Id', jsonData.players[2].id);",
+                  "pm.collectionVariables.set('player4Id', jsonData.players[3].id);",
+                  "",
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"playerNames\": [\"Dealer\", \"Liable\", \"Bystander1\", \"Bystander2\"],\n    \"startingScore\": 100000,\n    \"targetScore\": 100000,\n    \"pao\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "game"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2. Dealer Tsumo Yakuman with Pao",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"winners\": [\n        {\n            \"winnerId\": \"{{player1Id}}\",\n            \"han\": 13,\n            \"fu\": 0,\n            \"yaku\": [\"Daisangen\"],\n            \"paoPlayerId\": \"{{player2Id}}\"\n        }\n    ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}/round",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "game", "{{gameId}}", "round"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3. Verify Scores (Liable pays dealer ron equivalent)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Dealer tsumo yakuman with pao:",
+                  "// Normal tsumo = 16000 each × 3 = 48000",
+                  "// Pao: liable pays dealer ron equivalent = 48000",
+                  "",
+                  "pm.test('Dealer gained 48000', function () {",
+                  "    pm.expect(jsonData.players[0].score).to.eql(148000);",
+                  "});",
+                  "",
+                  "pm.test('Liable lost 48000', function () {",
+                  "    pm.expect(jsonData.players[1].score).to.eql(52000);",
+                  "});",
+                  "",
+                  "pm.test('Bystander1 unchanged', function () {",
+                  "    pm.expect(jsonData.players[2].score).to.eql(100000);",
+                  "});",
+                  "",
+                  "pm.test('Bystander2 unchanged', function () {",
+                  "    pm.expect(jsonData.players[3].score).to.eql(100000);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "game", "{{gameId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4. Delete Game",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/game/{{gameId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "game", "{{gameId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5053",
+      "type": "string"
+    },
+    {
+      "key": "gameId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "player1Id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "player2Id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "player3Id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "player4Id",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
